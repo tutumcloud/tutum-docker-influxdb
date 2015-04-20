@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const DefaultPath = "/Users/AllenSun/Downloads"
+const DefaultPath = os.Getenv("VOLUME_PATH")
 
 var InitSize string  
 

@@ -37,6 +37,10 @@ ENV SSL_CERT **None**
 ENV CONFIG_FILE /config/config.toml
 # InfluxDB pid file
 ENV PID_FILE /root/influxdb.pid
+# Volume path
+ENV VOLUME_PATH /data
+
+
 
 # Agent server
 EXPOSE 8080

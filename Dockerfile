@@ -18,7 +18,7 @@ RUN apt-get update && \
 ADD image_agent /root/image_agent
 
 RUN export PATH=$PATH:/usr/local/go/bin && \
-  export GOPATH=/root/tutum-docker-influxdb/image_agent && \
+  export GOPATH=/root/image_agent && \
   cd /root/image_agent/src/image_agent && \
   go get && \
   go build && \

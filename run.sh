@@ -2,6 +2,7 @@
 
 set -m
 CONFIG_FILE="/config/config.toml"
+PID_FILE="/root/influxdb.pid"
 
 #Dynamically change the value of 'max-open-shards' to what 'ulimit -n' returns
 sed -i "s/^max-open-shards.*/max-open-shards = $(ulimit -n)/" ${CONFIG_FILE}
@@ -78,7 +79,12 @@ if [ -n "${PRE_CREATE_DB}" ]; then
         echo "=> Database had been created before, skipping ..."
     else
         echo "=> Starting InfluxDB ..."
-        exec /usr/bin/influxdb -config=${CONFIG_FILE} &
+        #Let influxdb engine start in backgroup
+        #And influxdb runs without a pid=1
+        /usr/bin/influxdb -config=${CONFIG_FILE} &
+        #Get the process id of influxdb and store it
+        echo $! > PID_FILE
+
         PASS=${INFLUXDB_INIT_PWD:-root}
         arr=$(echo ${PRE_CREATE_DB} | tr ";" "\n")
 
@@ -100,8 +106,6 @@ if [ -n "${PRE_CREATE_DB}" ]; then
         echo ""
 
         touch "/data/.pre_db_created"
-        fg
-        exit 0
     fi
 else
     echo "=> No database need to be pre-created"
@@ -109,4 +113,15 @@ fi
 
 echo "=> Starting InfluxDB ..."
 
-exec /usr/bin/influxdb -config=${CONFIG_FILE}
+if [ -n "${PRE_CREATE_DB}" ]; then
+    echo "Databases created, and influxdb is running!"
+else
+    #Let influxdb engine start in backgroup
+    #And influxdb runs without a pid=1
+    /usr/bin/influxdb -config=${CONFIG_FILE} &
+    #Get the process id of influxdb and store it
+    echo $! > PID_FILE
+fi
+
+#Make image_agent take over the pid=1
+exec /image_agent

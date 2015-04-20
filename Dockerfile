@@ -10,11 +10,20 @@ RUN curl -s -o /tmp/influxdb_latest_amd64.deb https://s3.amazonaws.com/influxdb/
 
 ADD config.toml /config/config.toml
 ADD run.sh /run.sh
+ADD ./image_agent/src/image_agent/image_agent /image_agent
 RUN chmod +x /*.sh
 
 ENV PRE_CREATE_DB **None**
 ENV SSL_SUPPORT **False**
 ENV SSL_CERT **None**
+
+# Make agent can read config file
+ENV CONFIG_FILE /config/config.toml
+# InfluxDB pid file
+ENV PID_FILE /root/influxdb.pid
+
+# Agent server
+EXPOSE 8080
 
 # Admin server
 EXPOSE 8083

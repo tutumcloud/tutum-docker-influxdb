@@ -85,7 +85,7 @@ if [ -n "${PRE_CREATE_DB}" ]; then
         #Get the process id of influxdb and store it
         echo $! > PID_FILE
 
-        PASS=${INFLUXDB_INIT_PWD:-root}
+        PASS=$INFLUXDB_INIT_PWD
         arr=$(echo ${PRE_CREATE_DB} | tr ";" "\n")
 
         #wait for the startup of influxdb

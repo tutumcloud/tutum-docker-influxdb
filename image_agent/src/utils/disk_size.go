@@ -7,7 +7,9 @@ import (
 	"strings"
 )
 
-var DefaultPath = os.Getenv("VOLUME_PATH")
+var DefaultPath = "/data"
+// Check if the GetDiskSize is called by init()
+var isFirst = true
 
 var InitSize string  
 
@@ -17,6 +19,8 @@ func init(){
 
 func GetDiskSize() (string, error){
 	fmt.Println("Start Get Size")
+	// Get Volume Path from env, default to be /data
+	// Do not forget to add env VOLUME_PATH in Dockerfile
 	path := os.Getenv("VOLUME_PATH")
 	if path == "" {
 		path = DefaultPath
@@ -41,8 +45,14 @@ func GetDiskSize() (string, error){
 
 	//split the '\n' at the end of diskSizeStr
 	diskSizeStr = strings.Replace(diskSizeStr, "\n", "", -1)  
-
-	return diskSizeStr, nil
+	if isFirst == true {
+		return diskSizeStr, nil
+	}
+	else{
+		actualSize := strconv.Atoi(diskSizeStr) - strconv.Atoi(InitSize)
+		actualSizeStr = strconv.Itoa(actualSize)
+		return actualSizeStr, nil
+	}
 }
 
 func ExecShell(cmd string) (string, error) {

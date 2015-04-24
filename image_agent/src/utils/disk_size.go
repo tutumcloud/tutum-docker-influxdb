@@ -46,6 +46,7 @@ func GetDiskSize() (string, error){
 	//split the '\n' at the end of diskSizeStr
 	diskSizeStr = strings.Replace(diskSizeStr, "\n", "", -1)  
 	if isFirst == true {
+		isFirst = false
 		return diskSizeStr, nil
 	}
 	else{

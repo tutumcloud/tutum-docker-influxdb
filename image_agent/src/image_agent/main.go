@@ -26,5 +26,7 @@ func main() {
     //make agent start service engine running
     router.POST("/start", handler.StartEngine)
 
-	router.Run(":8080")
+    port := ":" + os.Getenv("AGENT_PORT")
+
+	router.Run(port)
 }

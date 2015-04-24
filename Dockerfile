@@ -3,6 +3,7 @@ MAINTAINER Feng Honglin <hfeng@tutum.co>
 
 # Install InfluxDB
 ENV INFLUXDB_VERSION 0.8.8
+ENV AGENT_PORT 8080
 
 RUN apt-get update && \
   apt-get install -y git && \

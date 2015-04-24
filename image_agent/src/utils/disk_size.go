@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"os/exec"
 	"strings"
 )
@@ -50,7 +51,7 @@ func GetDiskSize() (string, error){
 		return diskSizeStr, nil
 	}else{
 		actualSize := strconv.Atoi(diskSizeStr) - strconv.Atoi(InitSize)
-		actualSizeStr = strconv.Itoa(actualSize)
+		actualSizeStr := strconv.Itoa(actualSize)
 		return actualSizeStr, nil
 	}
 }

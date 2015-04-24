@@ -50,7 +50,9 @@ func GetDiskSize() (string, error){
 		isFirst = false
 		return diskSizeStr, nil
 	}else{
-		actualSize := strconv.Atoi(diskSizeStr) - strconv.Atoi(InitSize)
+		a,_ := strconv.Atoi(diskSizeStr)
+		b,_ := strconv.Atoi(InitSize)
+		actualSize := a - b
 		actualSizeStr := strconv.Itoa(actualSize)
 		return actualSizeStr, nil
 	}

@@ -17,7 +17,7 @@ func GetDetails(c *gin.Context) {
 		return 
 	}   
 
-	details["disk"] = disk_size
+	details["disk_usage"] = disk_size
 
 	c.JSON(200, details)                                                                                                    
 }

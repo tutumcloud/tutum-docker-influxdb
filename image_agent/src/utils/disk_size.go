@@ -50,13 +50,37 @@ func GetDiskSize() (string, error){
 		isFirst = false
 		return diskSizeStr, nil
 	}else{
-		a,_ := strconv.Atoi(diskSizeStr)
-		b,_ := strconv.Atoi(InitSize)
+		//diskSizeStr is like 12K, 32M, 48G ...
+		a, err := convert(diskSizeStr)
+		if err != nil {
+			return "strconv a error"
+		}
+		b, err := convert(InitSize)
+		if err != nil {
+			return "strconv a error"
+		}
 		actualSize := a - b
 		actualSizeStr := strconv.Itoa(actualSize)
 		return actualSizeStr, nil
 	}
 }
+
+func convert(a string) (int,error) {
+	i := len(a)
+	unit := a[i-1]
+	number,_ := strconv.Atoi(a[:l])
+
+	var result int
+	if unit =='G'{
+		result = number * 1024 * 1024
+	}else if unit == 'M' {
+		result = number * 1024
+	}else{
+		return -1, "convert error"
+	}
+	return result, nil	
+}
+
 
 func ExecShell(cmd string) (string, error) {
 	out, err := exec.Command("/bin/sh", "-c", cmd).Output()

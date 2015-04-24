@@ -53,11 +53,11 @@ func GetDiskSize() (string, error){
 		//diskSizeStr is like 12K, 32M, 48G ...
 		a, err := convert(diskSizeStr)
 		if err != nil {
-			return "","strconv a error"
+			return "",fmt.Errorf("strconv a error")
 		}
 		b, err := convert(InitSize)
 		if err != nil {
-			return "","strconv a error"
+			return "",fmt.Errorf("strconv a error")
 		}
 		actualSize := a - b
 		actualSizeStr := strconv.Itoa(actualSize)

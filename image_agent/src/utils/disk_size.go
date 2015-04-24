@@ -48,8 +48,7 @@ func GetDiskSize() (string, error){
 	if isFirst == true {
 		isFirst = false
 		return diskSizeStr, nil
-	}
-	else{
+	}else{
 		actualSize := strconv.Atoi(diskSizeStr) - strconv.Atoi(InitSize)
 		actualSizeStr = strconv.Itoa(actualSize)
 		return actualSizeStr, nil

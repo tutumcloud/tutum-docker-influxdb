@@ -1,9 +1,8 @@
 FROM tutum/curl:trusty
-MAINTAINER Feng Honglin <hfeng@tutum.co>
+MAINTAINER Feng Honglin <hfeng@tutum.co> && Allen Sun <allen.sun@daocloud.io>
 
 # Install InfluxDB
 ENV INFLUXDB_VERSION 0.8.8
-ENV AGENT_PORT 8080
 
 RUN apt-get update && \
   apt-get install -y git && \
@@ -16,6 +15,8 @@ RUN apt-get update && \
   tar -C /usr/local -xzf go1.3.3.linux-amd64.tar.gz && \
   rm go1.3.3.linux-amd64.tar.gz
 
+# Add agent_port here can improve the building performacne
+ENV AGENT_PORT 8080
 ADD image_agent /root/image_agent
 
 RUN export PATH=$PATH:/usr/local/go/bin && \

@@ -2,13 +2,13 @@ FROM tutum/curl:trusty
 MAINTAINER Feng Honglin <hfeng@tutum.co>
 
 # Install InfluxDB
-ENV INFLUXDB_VERSION 0.9.0-rc27
+ENV INFLUXDB_VERSION 0.9.0-rc
 RUN curl -s -o /tmp/influxdb_latest_amd64.deb https://s3.amazonaws.com/influxdb/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
   dpkg -i /tmp/influxdb_latest_amd64.deb && \
   rm /tmp/influxdb_latest_amd64.deb && \
   rm -rf /var/lib/apt/lists/*
 
-ADD config.toml /config/config.toml
+ADD config.toml /etc/opt/influxdb/influxdb.conf
 ADD run.sh /run.sh
 RUN chmod +x /*.sh
 

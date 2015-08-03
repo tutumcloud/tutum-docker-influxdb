@@ -9,14 +9,15 @@ InfluxDB image
 Usage
 -----
 
-To create the image `tutum/influxdb`, execute the following command on tutum-docker-influxdb folder:
+To create the image `tutum/influxdb`, cd into desired version and then execute the build:
 
-    docker build -t tutum/influxdb .
+    cd 0.9.2.1
+    docker build -t tutum/influxdb:0.9.2.1 .
 
 You can now push new image to the registry:
 
-    docker push tutum/influxdb
-    
+    docker push tutum/influxdb:0.9.2.1
+
 Tags
 ----
 

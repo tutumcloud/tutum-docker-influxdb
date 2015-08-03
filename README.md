@@ -16,7 +16,7 @@ To create the image `tutum/influxdb`, cd into desired version and then execute t
 
 You can now push new image to the registry:
 
-    docker push tutum/influxdb
+    docker push tutum/influxdb:0.9.2.1
 
 Tags
 ----

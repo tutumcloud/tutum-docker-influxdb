@@ -47,44 +47,44 @@ fi
 # Add Graphite support
 if [ -n "${GRAPHITE_DB}" ]; then
     echo "GRAPHITE_DB: ${GRAPHITE_DB}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/false/true/; s/\"graphitedb\"/\"${GRAPHITE_DB}\"/g; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[graphite\]\]/, /^\[/ { s/false/true/; s/\"graphitedb\"/\"${GRAPHITE_DB}\"/g; }" ${CONFIG_FILE}
 fi
 
 if [ -n "${GRAPHITE_BINDING}" ]; then
     echo "GRAPHITE_BINDING: ${GRAPHITE_BINDING}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/\:2003/${GRAPHITE_BINDING}/; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[graphite\]\]/, /^\[/ { s/\:2003/${GRAPHITE_BINDING}/; }" ${CONFIG_FILE}
 fi
 
 if [ -n "${GRAPHITE_PROTOCOL}" ]; then
     echo "GRAPHITE_PROTOCOL: ${GRAPHITE_PROTOCOL}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/tcp/${GRAPHITE_PROTOCOL}/; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[graphite\]\]/, /^\[/ { s/tcp/${GRAPHITE_PROTOCOL}/; }" ${CONFIG_FILE}
 fi
 
 if [ -n "${GRAPHITE_TEMPLATE}" ]; then
     echo "GRAPHITE_TEMPLATE: ${GRAPHITE_TEMPLATE}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/instance\.profile\.measurement\*/${GRAPHITE_TEMPLATE}/; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[graphite\]\]/, /^\[/ { s/instance\.profile\.measurement\*/${GRAPHITE_TEMPLATE}/; }" ${CONFIG_FILE}
 fi
 
 # Add Collectd support
 if [ -n "${COLLECTD_DB}" ]; then
     echo "COLLECTD_DB: ${COLLECTD_DB}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/false/true/; s/( *)# *(.*)\"collectd\"/\1\2\"${COLLECTD_DB}\"/g;}" ${CONFIG_FILE}
+    sed -i -r -e "/^\[collectd\]/, /^\[/ { s/false/true/; s/( *)# *(.*)\"collectd\"/\1\2\"${COLLECTD_DB}\"/g;}" ${CONFIG_FILE}
 fi
 if [ -n "${COLLECTD_BINDING}" ]; then
     echo "COLLECTD_BINDING: ${COLLECTD_BINDING}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(.*)\":25826\"/\1\2\"${COLLECTD_BINDING}\"/g;}" ${CONFIG_FILE}
+    sed -i -r -e "/^\[collectd\]/, /^\[/ { s/( *)# *(.*)\":25826\"/\1\2\"${COLLECTD_BINDING}\"/g;}" ${CONFIG_FILE}
 fi
 if [ -n "${COLLECTD_RETENTION_POLICY}" ]; then
     echo "COLLECTD_RETENTION_POLICY: ${COLLECTD_RETENTION_POLICY}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(retention-policy.*)\"\"/\1\2\"${COLLECTD_RETENTION_POLICY}\"/g;}" ${CONFIG_FILE}
+    sed -i -r -e "/^\[collectd\]/, /^\[/ { s/( *)# *(retention-policy.*)\"\"/\1\2\"${COLLECTD_RETENTION_POLICY}\"/g;}" ${CONFIG_FILE}
 fi
 
 # Add UDP support
 if [ -n "${UDP_DB}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/false/true/; s/#//g; s/\"udpdb\"/\"${UDP_DB}\"/g; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[udp\]\]/, /^\[/ { s/false/true/; s/\"udpdb\"/\"${UDP_DB}\"/g; }" ${CONFIG_FILE}
 fi
 if [ -n "${UDP_PORT}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/4444/${UDP_PORT}/; }" ${CONFIG_FILE}
+    sed -i -r -e "/^\[\[udp\]\]/, /^\[/ { s/4444/${UDP_PORT}/; }" ${CONFIG_FILE}
 fi
 
 

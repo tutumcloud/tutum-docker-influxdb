@@ -1,5 +1,5 @@
 db:
-  image: tutum/influxdb
+  image: appcelerator/influxdb
   ports:
    - "8083:8083"
    - "8086:8086"

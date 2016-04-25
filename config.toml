@@ -20,7 +20,7 @@ reporting-disabled = false
   enabled = true
 
   dir = "/data/meta"
-  hostname = "localhost"
+  hostname = "{{ CONFIG_HOSTNAME }}"
   bind-address = ":8088"
   retention-autocreate = true
   election-timeout = "1s"
@@ -139,12 +139,12 @@ reporting-disabled = false
 ### Controls one or many listeners for Graphite data.
 ###
 [[graphite]]
-  enabled = false
+  enabled = {{ CONFIG_GRAPHITE_ENABLED }}
   bind-address = ":2003"
   protocol = "tcp"
   consistency-level = "one"
   separator = "."
-  database = "graphitedb"
+  database = "{{ CONFIG_GRAPHITE_DATABASE }}"
   # These next lines control how batching works. You should have this enabled
   # otherwise you could get dropped metrics or poor performance. Batching
   # will buffer points in memory if you have many coming in.

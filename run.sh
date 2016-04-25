@@ -1,6 +1,7 @@
 #!/bin/sh
 
-set -m
+#set -m
+
 CONFIG_FILE="/config/config.toml"
 INFLUX_HOST="localhost"
 INFLUX_API_PORT="8086"
@@ -19,18 +20,21 @@ wait_for_start_of_influxdb(){
     done
 }
 
+# set env variables for configuration template
 
-# Dynamically change the value of 'max-open-shards' to what 'ulimit -n' returns
-sed -i "s/^max-open-shards.*/max-open-shards = $(ulimit -n)/" ${CONFIG_FILE}
+# max-open-shards
+CONFIG_MAX_OPEN_SHARDS="$(ulimit -n)"
 
+# hostname
+CONFIG_HOSTNAME="localhost"
 # Configure InfluxDB Cluster
 if [ -n "${FORCE_HOSTNAME}" ]; then
-    if [ "${FORCE_HOSTNAME}" == "auto" ]; then
+    if [ "${FORCE_HOSTNAME}" = "auto" ]; then
         #set hostname with IPv4 eth0
         HOSTIPNAME=$(ip a show dev eth0 | grep inet | grep eth0 | sed -e 's/^.*inet.//g' -e 's/\/.*$//g')
-        /usr/bin/perl -p -i -e "s/hostname = \"localhost\"/hostname = \"${HOSTIPNAME}\"/g" ${CONFIG_FILE}
+        CONFIG_HOSTNAME="$HOSTIPNAME"
     else
-        /usr/bin/perl -p -i -e "s/hostname = \"localhost\"/hostname = \"${FORCE_HOSTNAME}\"/g" ${CONFIG_FILE}
+        CONFIG_HOSTNAME="$FORCE_HOSTNAME"
     fi
 fi
 
@@ -41,7 +45,8 @@ fi
 # fi
 
 if [ -n "${REPLI_FACTOR}" ]; then
-    /usr/bin/perl -p -i -e "s/replication-factor = 1/replication-factor = ${REPLI_FACTOR}/g" ${CONFIG_FILE}
+    # replication-factor
+    CONFIG_REPLI_FACTOR="$REPLI_FACTOR"
 fi
 
 if [ "${PRE_CREATE_DB}" == "**None**" ]; then
@@ -58,10 +63,13 @@ fi
 #     unset SSL_SUPPORT
 # fi
 
+CONFIG_GRAPHITE_ENABLED="false"
+CONFIG_GRAPHITE_DATABASE="graphitedb"
 # Add Graphite support
 if [ -n "${GRAPHITE_DB}" ]; then
     echo "GRAPHITE_DB: ${GRAPHITE_DB}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/false/true/; s/\"graphitedb\"/\"${GRAPHITE_DB}\"/g; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_ENABLED="true"
+    CONFIG_GRAPHITE_DATABASE="$GRAPHITE_DB"
 fi
 
 if [ -n "${GRAPHITE_BINDING}" ]; then
@@ -100,6 +108,8 @@ fi
 if [ -n "${UDP_PORT}" ]; then
     sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/4444/${UDP_PORT}/; }" ${CONFIG_FILE}
 fi
+
+envtpl /config/config.toml.tpl
 
 
 if [ -f "/data/.init_script_executed" ]; then

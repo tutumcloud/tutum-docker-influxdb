@@ -6,6 +6,10 @@ RUN apk --no-cache add python py-pip python-dev curl && \
     pip install envtpl && \
     apk del py-pip python-dev curl openssl ca-certificates libssh2 libbz2 expat libffi gdbm
 
+LABEL logType="influxdb"
+
+ENV ADMIN_USER root
+ENV INFLUXDB_INIT_PWD root
 ENV INFLUXDB_VERSION 0.12.2
 
 RUN export GOPATH=/go && \
@@ -47,3 +51,7 @@ EXPOSE 8086
 VOLUME ["/data"]
 
 CMD ["/run.sh"]
+
+# will be updated whenever there's a new commit
+LABEL commit=${GIT_COMMIT}
+LABEL branch=${GIT_BRANCH}

@@ -1,4 +1,4 @@
-tutum-docker-influxdb
+docker-influxdb
 =====================
 
 [![Build Status](http://drone.amp.appcelerator.io:8000/api/badges/appcelerator/docker-influxdb/status.svg)](http://drone.amp.appcelerator.io:8000/appcelerator/docker-influxdb)

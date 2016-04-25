@@ -6,7 +6,7 @@
 # to track the number of instances running and the versions, which
 # is very helpful for us.
 # Change this option to true to disable reporting.
-reporting-disabled = false
+reporting-disabled = true
 
 hostname = "{{ CONFIG_HOSTNAME }}"
 ###

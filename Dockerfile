@@ -24,7 +24,7 @@ RUN export GOPATH=/go && \
     mkdir -p /etc/influxdb /data/influxdb /data/influxdb/meta /data/influxdb/data /var/tmp/influxdb/wal /var/log/influxdb
 
 ADD types.db /usr/share/collectd/types.db
-ADD config.toml /config/config.toml
+ADD config.toml /config/config.toml.tpl
 ADD run.sh /run.sh
 RUN chmod +x /*.sh
 

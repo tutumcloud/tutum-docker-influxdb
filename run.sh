@@ -24,9 +24,9 @@ wait_for_start_of_influxdb(){
 
 # max-open-shards
 CONFIG_MAX_OPEN_SHARDS="$(ulimit -n)"
+export CONFIG_MAX_OPEN_SHARDS
 
 # hostname
-CONFIG_HOSTNAME="localhost"
 # Configure InfluxDB Cluster
 if [ -n "${FORCE_HOSTNAME}" ]; then
     if [ "${FORCE_HOSTNAME}" = "auto" ]; then
@@ -36,6 +36,7 @@ if [ -n "${FORCE_HOSTNAME}" ]; then
     else
         CONFIG_HOSTNAME="$FORCE_HOSTNAME"
     fi
+    export CONFIG_HOSTNAME
 fi
 
 # NOTE: 'seed-servers.' is nowhere to be found in config.toml, this cannot work anymore! NEED FOR REVIEW!
@@ -47,6 +48,7 @@ fi
 if [ -n "${REPLI_FACTOR}" ]; then
     # replication-factor
     CONFIG_REPLI_FACTOR="$REPLI_FACTOR"
+    export CONFIG_REPLI_FACTOR
 fi
 
 if [ "${PRE_CREATE_DB}" == "**None**" ]; then
@@ -63,53 +65,72 @@ fi
 #     unset SSL_SUPPORT
 # fi
 
-CONFIG_GRAPHITE_ENABLED="false"
-CONFIG_GRAPHITE_DATABASE="graphitedb"
 # Add Graphite support
 if [ -n "${GRAPHITE_DB}" ]; then
     echo "GRAPHITE_DB: ${GRAPHITE_DB}"
-    CONFIG_GRAPHITE_ENABLED="true"
     CONFIG_GRAPHITE_DATABASE="$GRAPHITE_DB"
+    export CONFIG_GRAPHITE_DATABASE
 fi
 
 if [ -n "${GRAPHITE_BINDING}" ]; then
     echo "GRAPHITE_BINDING: ${GRAPHITE_BINDING}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/\:2003/${GRAPHITE_BINDING}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_BINDING="$GRAPHITE_BINDING"
+    export CONFIG_GRAPHITE_BINDING
 fi
 
 if [ -n "${GRAPHITE_PROTOCOL}" ]; then
     echo "GRAPHITE_PROTOCOL: ${GRAPHITE_PROTOCOL}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/tcp/${GRAPHITE_PROTOCOL}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_PROTOCOL="$GRAPHITE_PROTOCOL"
+    export CONFIG_GRAPHITE_PROTOCOL
 fi
 
 if [ -n "${GRAPHITE_TEMPLATE}" ]; then
     echo "GRAPHITE_TEMPLATE: ${GRAPHITE_TEMPLATE}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/instance\.profile\.measurement\*/${GRAPHITE_TEMPLATE}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_TEMPLATE="$GRAPHITE_TEMPLATE"
+    export CONFIG_GRAPHITE_TEMPLATE
 fi
 
 # Add Collectd support
 if [ -n "${COLLECTD_DB}" ]; then
     echo "COLLECTD_DB: ${COLLECTD_DB}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/false/true/; s/( *)# *(.*)\"collectd\"/\1\2\"${COLLECTD_DB}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_DB="$COLLECTD_DB"
+    export CONFIG_COLLECTD_DB
 fi
 if [ -n "${COLLECTD_BINDING}" ]; then
     echo "COLLECTD_BINDING: ${COLLECTD_BINDING}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(.*)\":25826\"/\1\2\"${COLLECTD_BINDING}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_BINDING="$COLLECTD_BINDING"
+    export CONFIG_COLLECTD_BINDING
 fi
+CONFIG_COLLECTD_RETENTION_POLICY=""
 if [ -n "${COLLECTD_RETENTION_POLICY}" ]; then
     echo "COLLECTD_RETENTION_POLICY: ${COLLECTD_RETENTION_POLICY}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(retention-policy.*)\"\"/\1\2\"${COLLECTD_RETENTION_POLICY}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_RETENTION_POLICY="$COLLECTD_RETENTION_POLICY"
 fi
+export CONFIG_COLLECTD_RETENTION_POLICY
 
 # Add UDP support
 if [ -n "${UDP_DB}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/false/true/; s/#//g; s/\"udpdb\"/\"${UDP_DB}\"/g; }" ${CONFIG_FILE}
+    CONFIG_UDP_DB="$UDP_DB"
+    export CONFIG_UDP_DB
 fi
 if [ -n "${UDP_PORT}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/4444/${UDP_PORT}/; }" ${CONFIG_FILE}
+    CONFIG_UDP_PORT="$UDP_PORT"
+    export CONFIG_UDP_PORT
 fi
 
-envtpl /config/config.toml.tpl
+if [ -f ${CONFIG_FILE}.tpl ]; then
+    envtpl ${CONFIG_FILE}.tpl
+    if [ $? -ne 0 ]; then
+        echo "unable to generate $CONFIG_FILE"
+        exit 1
+    fi
+else
+    echo "can't find ${CONFIG_FILE}.tpl"
+fi
+if [ ! -f ${CONFIG_FILE} ]; then
+    echo "can't find ${CONFIG_FILE}"
+    exit 1
+fi
 
 
 if [ -f "/data/.init_script_executed" ]; then

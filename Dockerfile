@@ -13,8 +13,7 @@ ENV ADMIN_USER root
 ENV INFLUXDB_INIT_PWD root
 ENV INFLUXDB_VERSION 0.12.2
 
-RUN apk --no-cache add go && \
-    apk --virtual build-deps add curl git gcc musl-dev make && \
+RUN apk --virtual build-deps add go curl git gcc musl-dev make && \
     export GOPATH=/go && \
     apk --no-cache add go git gcc musl-dev make && \
     go get github.com/influxdata/influxdb && \

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#set -m
+set -m
 
 CONFIG_FILE="/config/config.toml"
 INFLUX_HOST="localhost"
@@ -11,13 +11,17 @@ PASS=${INFLUXDB_INIT_PWD:-root}
 
 wait_for_start_of_influxdb(){
     #wait for the startup of influxdb
-    RET=1
-    while [[ RET -ne 0 ]]; do
-        echo "=> Waiting for confirmation of InfluxDB service startup ..."
+    local retry=0
+    while ! curl ${API_URL}/ping 2>/dev/null; do
+        retry=$((retry+1))
+        if [ $retry -gt 15 ]; then
+            echo "\nERROR: unable to start grafana"
+            exit 1
+        fi
+        echo -n "."
         sleep 3
-        curl -k ${API_URL}/ping 2> /dev/null
-        RET=$?
     done
+    echo "Influxdb is available"
 }
 
 # set env variables for configuration template
@@ -167,7 +171,12 @@ else
     if [ -f "/init_script.influxql" ] || [ -f "/tmp/init_script.influxql" ]; then
         echo "=> About to execute the initialization script"
 
-        cat /init_script.influxql >> /tmp/init_script.influxql
+        if [ -f /init_script.influxql ]; then
+            echo "add provided init script"
+            cat /init_script.influxql >> /tmp/init_script.influxql
+        else
+            echo "no provided init script"
+        fi
 
         echo "=> Executing the influxql script..."
         influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username=${ADMIN} -password="${PASS}" -import -path /tmp/init_script.influxql

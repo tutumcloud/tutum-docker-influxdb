@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -m
-
 CONFIG_FILE="/config/config.toml"
 INFLUX_HOST="localhost"
 INFLUX_API_PORT="8086"
@@ -142,9 +140,9 @@ if [ -f "/data/.init_script_executed" ]; then
 else
     echo "=> Starting InfluxDB in background ..."
     if [ -n "${JOIN}" ]; then
-        exec influxd -config=${CONFIG_FILE} -join ${JOIN} &
+        influxd -config=${CONFIG_FILE} -join ${JOIN} &
     else
-        exec influxd -config=${CONFIG_FILE} &
+        influxd -config=${CONFIG_FILE} &
     fi
 
     wait_for_start_of_influxdb

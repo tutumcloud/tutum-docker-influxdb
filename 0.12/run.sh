@@ -122,8 +122,8 @@ if [ -n "${PRE_CREATE_DB}" ]; then
           for x in $arr
           do
               echo "=> Creating database: ${x}"
-              influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username=${ADMIN_USER} -password="${PASS}" -execute="create database \"${x}\""
-              influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username=${ADMIN_USER} -password="${PASS}" -execute="grant all PRIVILEGES on \"${x}\" to ${ADMIN_USER}"
+              influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username="${ADMIN_USER}" -password="${PASS}" -execute="create database \"${x}\""
+              influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username="${ADMIN_USER}" -password="${PASS}" -execute="grant all PRIVILEGES on \"${x}\" to ${ADMIN_USER}"
           done
           echo ""
         else

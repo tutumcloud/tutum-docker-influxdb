@@ -3,7 +3,7 @@ MAINTAINER Nicolas Degory <ndegory@axway.com>
 
 RUN apk --no-cache add python && \
     apk --virtual envtpl-deps add --update py-pip python-dev curl && \
-    curl https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | python - --version=20.9.0 && \
+    curl https://bootstrap.pypa.io/ez_setup.py | python && \
     pip install envtpl && \
     apk del envtpl-deps
 

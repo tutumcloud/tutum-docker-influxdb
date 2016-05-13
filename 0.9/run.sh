@@ -117,7 +117,7 @@ else
     #Create the admin user
     if [ -n "${ADMIN_USER}" ] || [ -n "${INFLUXDB_INIT_PWD}" ]; then
         echo "=> Creating admin user"
-        influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -execute="CREATE USER ${ADMIN} WITH PASSWORD '${PASS}' WITH ALL PRIVILEGES"
+        influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -execute="CREATE USER \"${ADMIN}\" WITH PASSWORD '${PASS}' WITH ALL PRIVILEGES"
     fi
 
     # Pre create database on the initiation of the container
@@ -128,7 +128,7 @@ else
         for x in $arr
         do
             echo "=> Creating database: ${x}"
-            echo "CREATE DATABASE ${x}" >> /tmp/init_script.influxql
+            echo "CREATE DATABASE \"${x}\"" >> /tmp/init_script.influxql
         done
     fi
 
@@ -139,7 +139,7 @@ else
         cat /init_script.influxql >> /tmp/init_script.influxql
 
         echo "=> Executing the influxql script..."
-        influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username=${ADMIN} -password="${PASS}" -import -path /tmp/init_script.influxql
+        influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username="${ADMIN}" -password="${PASS}" -import -path /tmp/init_script.influxql
 
         echo "=> Influxql script executed."
         touch "/data/.init_script_executed"

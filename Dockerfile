@@ -1,33 +1,34 @@
 FROM alpine:3.3
 MAINTAINER Nicolas Degory <ndegory@axway.com>
 
-RUN apk --no-cache add python && \
+RUN apk update && \
+    apk --no-cache add python ca-certificates && \
     apk --virtual envtpl-deps add --update py-pip python-dev curl && \
     curl https://bootstrap.pypa.io/ez_setup.py | python && \
     pip install envtpl && \
-    apk del envtpl-deps
+    apk del envtpl-deps && rm -rf /var/cache/apk/*
 
-LABEL logType="influxdb"
+ENV INFLUXDB_VERSION 0.13.0
 
-ENV ADMIN_USER root
-ENV INFLUXDB_INIT_PWD root
-ENV INFLUXDB_VERSION 0.12.2
-
-RUN apk --virtual build-deps add go curl git gcc musl-dev make && \
+RUN echo "http://nl.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    echo "http://nl.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    apk update && apk upgrade && \
+    apk --virtual build-deps add go>1.6 curl git gcc musl-dev make && \
     export GOPATH=/go && \
-    apk --no-cache add go git gcc musl-dev make && \
-    go get github.com/influxdata/influxdb && \
+    go get -v github.com/influxdata/influxdb && \
     cd $GOPATH/src/github.com/influxdata/influxdb && \
     git checkout -q --detach "v${INFLUXDB_VERSION}" && \
-    go get -u -f -t ./... && \
+    go get -v ./... && \
     go install -v ./... && \
     chmod +x $GOPATH/bin/* && \
     mv $GOPATH/bin/* /bin/ && \
-    apk del go git gcc musl-dev make binutils-libs binutils libatomic libgcc openssl libssh2 libstdc++ mpc1 isl gmp ca-certificates pkgconf pkgconfig mpfr3 && \
     mkdir -p /etc/influxdb /data/influxdb /data/influxdb/meta /data/influxdb/data /var/tmp/influxdb/wal /var/log/influxdb && \
     apk del build-deps && cd / && rm -rf $GOPATH/ /var/cache/apk/*
 
 RUN apk --no-cache add curl
+
+ENV ADMIN_USER root
+ENV INFLUXDB_INIT_PWD root
 
 ADD types.db /usr/share/collectd/types.db
 ADD config.toml /config/config.toml.tpl
@@ -54,6 +55,7 @@ VOLUME ["/data"]
 
 CMD ["/run.sh"]
 
+LABEL axway_image="influxdb"
 # will be updated whenever there's a new commit
 LABEL commit=${GIT_COMMIT}
 LABEL branch=${GIT_BRANCH}

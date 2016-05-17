@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-set -m
 CONFIG_FILE="/config/config.toml"
 INFLUX_HOST="localhost"
 INFLUX_API_PORT="8086"
@@ -10,28 +9,36 @@ PASS=${INFLUXDB_INIT_PWD:-root}
 
 wait_for_start_of_influxdb(){
     #wait for the startup of influxdb
-    RET=1
-    while [[ RET -ne 0 ]]; do
-        echo "=> Waiting for confirmation of InfluxDB service startup ..."
+    local retry=0
+    while ! curl ${API_URL}/ping 2>/dev/null; do
+        retry=$((retry+1))
+        if [ $retry -gt 15 ]; then
+            echo "\nERROR: unable to start grafana"
+            exit 1
+        fi
+        echo -n "."
         sleep 3
-        curl -k ${API_URL}/ping 2> /dev/null
-        RET=$?
     done
+    echo "Influxdb is available"
 }
 
+# set env variables for configuration template
 
-# Dynamically change the value of 'max-open-shards' to what 'ulimit -n' returns
-sed -i "s/^max-open-shards.*/max-open-shards = $(ulimit -n)/" ${CONFIG_FILE}
+# max-open-shards
+CONFIG_MAX_OPEN_SHARDS="$(ulimit -n)"
+export CONFIG_MAX_OPEN_SHARDS
 
+# hostname
 # Configure InfluxDB Cluster
 if [ -n "${FORCE_HOSTNAME}" ]; then
-    if [ "${FORCE_HOSTNAME}" == "auto" ]; then
+    if [ "${FORCE_HOSTNAME}" = "auto" ]; then
         #set hostname with IPv4 eth0
         HOSTIPNAME=$(ip a show dev eth0 | grep inet | grep eth0 | sed -e 's/^.*inet.//g' -e 's/\/.*$//g')
-        /usr/bin/perl -p -i -e "s/hostname = \"localhost\"/hostname = \"${HOSTIPNAME}\"/g" ${CONFIG_FILE}
+        CONFIG_HOSTNAME="$HOSTIPNAME"
     else
-        /usr/bin/perl -p -i -e "s/hostname = \"localhost\"/hostname = \"${FORCE_HOSTNAME}\"/g" ${CONFIG_FILE}
+        CONFIG_HOSTNAME="$FORCE_HOSTNAME"
     fi
+    export CONFIG_HOSTNAME
 fi
 
 # NOTE: 'seed-servers.' is nowhere to be found in config.toml, this cannot work anymore! NEED FOR REVIEW!
@@ -41,7 +48,9 @@ fi
 # fi
 
 if [ -n "${REPLI_FACTOR}" ]; then
-    /usr/bin/perl -p -i -e "s/replication-factor = 1/replication-factor = ${REPLI_FACTOR}/g" ${CONFIG_FILE}
+    # replication-factor
+    CONFIG_REPLI_FACTOR="$REPLI_FACTOR"
+    export CONFIG_REPLI_FACTOR
 fi
 
 if [ "${PRE_CREATE_DB}" == "**None**" ]; then
@@ -61,44 +70,68 @@ fi
 # Add Graphite support
 if [ -n "${GRAPHITE_DB}" ]; then
     echo "GRAPHITE_DB: ${GRAPHITE_DB}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/false/true/; s/\"graphitedb\"/\"${GRAPHITE_DB}\"/g; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_DATABASE="$GRAPHITE_DB"
+    export CONFIG_GRAPHITE_DATABASE
 fi
 
 if [ -n "${GRAPHITE_BINDING}" ]; then
     echo "GRAPHITE_BINDING: ${GRAPHITE_BINDING}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/\:2003/${GRAPHITE_BINDING}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_BINDING="$GRAPHITE_BINDING"
+    export CONFIG_GRAPHITE_BINDING
 fi
 
 if [ -n "${GRAPHITE_PROTOCOL}" ]; then
     echo "GRAPHITE_PROTOCOL: ${GRAPHITE_PROTOCOL}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/tcp/${GRAPHITE_PROTOCOL}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_PROTOCOL="$GRAPHITE_PROTOCOL"
+    export CONFIG_GRAPHITE_PROTOCOL
 fi
 
 if [ -n "${GRAPHITE_TEMPLATE}" ]; then
     echo "GRAPHITE_TEMPLATE: ${GRAPHITE_TEMPLATE}"
-    sed -i -r -e "/^\[\[graphite\]\]/, /^$/ { s/instance\.profile\.measurement\*/${GRAPHITE_TEMPLATE}/; }" ${CONFIG_FILE}
+    CONFIG_GRAPHITE_TEMPLATE="$GRAPHITE_TEMPLATE"
+    export CONFIG_GRAPHITE_TEMPLATE
 fi
 
 # Add Collectd support
 if [ -n "${COLLECTD_DB}" ]; then
     echo "COLLECTD_DB: ${COLLECTD_DB}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/false/true/; s/( *)# *(.*)\"collectd\"/\1\2\"${COLLECTD_DB}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_DB="$COLLECTD_DB"
+    export CONFIG_COLLECTD_DB
 fi
 if [ -n "${COLLECTD_BINDING}" ]; then
     echo "COLLECTD_BINDING: ${COLLECTD_BINDING}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(.*)\":25826\"/\1\2\"${COLLECTD_BINDING}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_BINDING="$COLLECTD_BINDING"
+    export CONFIG_COLLECTD_BINDING
 fi
+CONFIG_COLLECTD_RETENTION_POLICY=""
 if [ -n "${COLLECTD_RETENTION_POLICY}" ]; then
     echo "COLLECTD_RETENTION_POLICY: ${COLLECTD_RETENTION_POLICY}"
-    sed -i -r -e "/^\[collectd\]/, /^$/ { s/( *)# *(retention-policy.*)\"\"/\1\2\"${COLLECTD_RETENTION_POLICY}\"/g;}" ${CONFIG_FILE}
+    CONFIG_COLLECTD_RETENTION_POLICY="$COLLECTD_RETENTION_POLICY"
 fi
+export CONFIG_COLLECTD_RETENTION_POLICY
 
 # Add UDP support
 if [ -n "${UDP_DB}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/false/true/; s/#//g; s/\"udpdb\"/\"${UDP_DB}\"/g; }" ${CONFIG_FILE}
+    CONFIG_UDP_DB="$UDP_DB"
+    export CONFIG_UDP_DB
 fi
 if [ -n "${UDP_PORT}" ]; then
-    sed -i -r -e "/^\[\[udp\]\]/, /^$/ { s/4444/${UDP_PORT}/; }" ${CONFIG_FILE}
+    CONFIG_UDP_PORT="$UDP_PORT"
+    export CONFIG_UDP_PORT
+fi
+
+if [ -f ${CONFIG_FILE}.tpl ]; then
+    envtpl ${CONFIG_FILE}.tpl
+    if [ $? -ne 0 ]; then
+        echo "unable to generate $CONFIG_FILE"
+        exit 1
+    fi
+else
+    echo "can't find ${CONFIG_FILE}.tpl"
+fi
+if [ ! -f ${CONFIG_FILE} ]; then
+    echo "can't find ${CONFIG_FILE}"
+    exit 1
 fi
 
 
@@ -107,9 +140,9 @@ if [ -f "/data/.init_script_executed" ]; then
 else
     echo "=> Starting InfluxDB in background ..."
     if [ -n "${JOIN}" ]; then
-        exec influxd -config=${CONFIG_FILE} -join ${JOIN} &
+        influxd -config=${CONFIG_FILE} -join ${JOIN} &
     else
-        exec influxd -config=${CONFIG_FILE} &
+        influxd -config=${CONFIG_FILE} &
     fi
 
     wait_for_start_of_influxdb
@@ -136,7 +169,12 @@ else
     if [ -f "/init_script.influxql" ] || [ -f "/tmp/init_script.influxql" ]; then
         echo "=> About to execute the initialization script"
 
-        cat /init_script.influxql >> /tmp/init_script.influxql
+        if [ -f /init_script.influxql ]; then
+            echo "add provided init script"
+            cat /init_script.influxql >> /tmp/init_script.influxql
+        else
+            echo "no provided init script"
+        fi
 
         echo "=> Executing the influxql script..."
         influx -host=${INFLUX_HOST} -port=${INFLUX_API_PORT} -username=${ADMIN} -password="${PASS}" -import -path /tmp/init_script.influxql

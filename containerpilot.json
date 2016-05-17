@@ -1,0 +1,12 @@
+{
+  "consul": "[consul]",
+  "services": [
+    {
+      "name": "influxdb",
+      "port": 8083,
+      "health": "pidof influxd",
+      "poll": 10,
+      "ttl": 30
+    }
+  ]
+}

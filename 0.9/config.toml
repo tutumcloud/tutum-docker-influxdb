@@ -120,7 +120,7 @@ reporting-disabled = false
 ### Controls one or many listeners for Graphite data.
 ###
 [[graphite]]
-  enabled = false
+  enabled = true
   bind-address = ":2003"
   protocol = "tcp"
   consistency-level = "one"
